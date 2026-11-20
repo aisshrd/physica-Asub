@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+title: "Kinetic theory and DSMC code for rough granular gases with velocity-dependent Coulomb friction"
+version: "2.0.0"
+date-released: "2026-11-19"
+license: MIT
+authors:
+  - family-names: Tazhimov
+    given-names: T. A.
+    affiliation: "Kazan National Research Technical University named after A.N. Tupolev - KAI"
+  - family-names: Sharden
+    given-names: A. R.
+    affiliation: "Kazan National Research Technical University named after A.N. Tupolev - KAI"
+  - family-names: Alishirov
+    given-names: I. T.
+    affiliation: "Kazan National Research Technical University named after A.N. Tupolev - KAI"
+message: "If you use this code, please cite the accompanying article (Physica A, submitted) and this repository."
