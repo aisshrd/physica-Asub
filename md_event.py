@@ -47,7 +47,7 @@ def _next_event(i, tt, r, v, tl, L, N):
 
 
 @njit(cache=True)
-def _run(r, v, w, L, q, e, b0, mu_k, mu_s, vS, p, touts, scale):
+def _run(r, v, w, L, q, e, b0, mu_k, mu_s, vS, p, touts, scale, is_snap, wsnap):
     N = r.shape[0]
     I = q / 4.0
     kt = q / (1.0 + q)
@@ -60,7 +60,7 @@ def _run(r, v, w, L, q, e, b0, mu_k, mu_s, vS, p, touts, scale):
         pcnt[i] = cnt[partner[i]] if partner[i] >= 0 else 0
     nout = touts.shape[0]
     out = np.zeros((nout, 5))
-    k = 0; ncol = 0; t = 0.0
+    k = 0; ncol = 0; t = 0.0; ks = 0
     nc = 4
     while k < nout:
         i = np.argmin(tnext)
@@ -85,6 +85,10 @@ def _run(r, v, w, L, q, e, b0, mu_k, mu_s, vS, p, touts, scale):
                     ef += (vs[c, 0] ** 2 + vs[c, 1] ** 2 + vs[c, 2] ** 2) / cn[c]
             out[k, 0] = t * scale; out[k, 1] = Tt / (3.0 * N); out[k, 2] = I * Tr / (3.0 * N)
             out[k, 3] = 2.0 * ncol / N; out[k, 4] = ef / Tt
+            if is_snap[k]:                    # store the angular velocities at this output time
+                for a in range(N):
+                    wsnap[ks, a, 0] = w[a, 0]; wsnap[ks, a, 1] = w[a, 1]; wsnap[ks, a, 2] = w[a, 2]
+                ks += 1
             k += 1
             continue
         j = partner[i]
@@ -129,8 +133,10 @@ def _run(r, v, w, L, q, e, b0, mu_k, mu_s, vS, p, touts, scale):
     return out
 
 
-def run_md(M, Tt0, Tr0, n=0.05, nside=16, t_end=200.0, seed=0, nout=60):
-    """M: theory.Model.  Returns (out, v, w, info); out columns: t*, T_t, T_r, collisions/particle, flow-energy fraction."""
+def run_md(M, Tt0, Tr0, n=0.05, nside=16, t_end=200.0, seed=0, nout=60, snap_times=None):
+    """M: theory.Model.  Returns (out, v, w, info); out columns: t*, T_t, T_r, collisions/particle, flow-energy fraction.
+    snap_times: optional list of times t* at which the angular velocities are stored; they are returned as
+    info['snaps'] = [(t*, T_t, w), ...] and the corresponding rows are added to out."""
     rng = np.random.default_rng(seed)
     N = nside ** 3
     L = (N / n) ** (1 / 3)
@@ -141,9 +147,16 @@ def run_md(M, Tt0, Tr0, n=0.05, nside=16, t_end=200.0, seed=0, nout=60):
     r += rng.uniform(-0.2, 0.2, r.shape)
     v = rng.normal(0, np.sqrt(Tt0), (N, 3)); v -= v.mean(0)
     w = rng.normal(0, np.sqrt(Tr0 / I), (N, 3))
-    touts = np.concatenate([[0.0], np.logspace(-2, np.log10(t_end), nout)]) / scale
-    out = _run(r, v, w, L, q, M.e, M.b0, M.mu_k, M.mu_s, M.vS, float(M.p), touts, scale)
-    return out, v, w, dict(N=N, L=L, n=n, phi=phi, chi=chi)
+    tstd = np.concatenate([[0.0], np.logspace(-2, np.log10(t_end), nout)])
+    tsn = np.array(sorted(snap_times)) if snap_times is not None else np.zeros(0)
+    tall = np.concatenate([tstd, tsn]); order = np.argsort(tall, kind='stable')
+    touts = tall[order] / scale; is_snap = (order >= len(tstd))
+    wsnap = np.zeros((len(tsn), N, 3))
+    out = _run(r, v, w, L, q, M.e, M.b0, M.mu_k, M.mu_s, M.vS, float(M.p), touts, scale, is_snap, wsnap)
+    info = dict(N=N, L=L, n=n, phi=phi, chi=chi)
+    if snap_times is not None:
+        info['snaps'] = [(out[k, 0], out[k, 1], wsnap[i]) for i, k in enumerate(np.nonzero(is_snap)[0])]
+    return out, v, w, info
 
 
 if __name__ == "__main__":

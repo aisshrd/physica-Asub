@@ -5,7 +5,13 @@ Supplementary code for the article
 Coulomb–Amontons friction: a per-collision kinetic theory beyond mean field and its DSMC and molecular-dynamics tests"*
 by T. A. Tazhimov, A. R. Sharden, I. T. Alishirov (Kazan National Research Technical University – KAI).
 
-**Version 2.0** (revised manuscript). New in this version: event-driven molecular dynamics (`md_event.py`),
+**Version 2.1** (second revision). New in this version: uniqueness of the rotational steady state of the heated gas
+(`root_scan.py`), refined temperature grid (`scan_fine.py`), DSMC of the heated gas from four widely different initial
+conditions (`run_driven2.py`), scope of the frozen population with respect to system size, observation time and initial
+temperature ratio, with the threshold count and the dynamical count kept apart (`run_scope.py`, `md_scope.py`,
+`scope_report.py`, `scope_table.py`); `md_event.py` can store snapshots; `fig7.py` has two additional panels.
+
+**Version 2.0** (first revision). New in that version: event-driven molecular dynamics (`md_event.py`),
 non-Gaussian diagnostics (`diag_nongauss.py`, `diag_bulk.py`), accuracy of the asymptotic formulas (`asym_check.py`),
 sticking contribution and monotonicity scan (`sliding_check.py`), realisation checks (`check_CEG.py`), revised figure scripts.
 
@@ -26,8 +32,14 @@ Python ≥ 3.10, `pip install -r requirements.txt` (numpy, scipy, matplotlib; nu
 | `phase.py`, `asym_check.py` | phase diagram, exact zeros, first- and second-order threshold formulas | Fig. 2, Table 3 |
 | `driven.py`, `run_driven.py`, `sliding_check.py` | heating curve, DSMC steady states, sticking contribution, 240-point monotonicity scan | Fig. 4, Table 4, Sec. 5.1 |
 | `scan_extended.py` | second monotonicity scan, 384 sets varying e, β0, q (~10 min, 2 cores) | Sec. 5.1 (ii) |
+| `root_scan.py` | number of roots of the rotational balance in θ for all 624 sets × 71 temperatures (~25 min, 2 cores); `python3 root_scan.py outside` adds six temperatures outside the window (~4 min); `python3 root_scan.py check` tests the quadrature | Sec. 5.1 (ii) |
+| `scan_fine.py` | the 12 flattest heating curves on a ten times finer temperature grid (~8 min, 2 cores) | Sec. 5.1 (ii) |
+| `run_driven2.py` | heated gas, DSMC from hot/cold × slow/fast-rotation initial conditions for three friction laws (~50 min) | Sec. 5.1 (iii) |
 | `run_cool.py` | Stribeck cooling: DSMC vs per-collision theory vs mean field (writes `cool.pkl`) | Fig. 5, Fig. 6 |
 | `run_freeze.py`, `check_CEG.py` | history dependence of the frozen population; realisation checks | Table 5, Fig. 7 |
+| `run_scope.py` | DSMC of run A for N = 5×10³…3.2×10⁵ up to t = 10⁵; initial temperature ratio θ₀ = 0.01…1 with up to 10⁶ particles; constant-friction controls (μ = 0.12, 2.5×10⁶ particles; μ = 0.02, 8×10⁵ particles); threshold count n_f and dynamical count n_Δ (~3 h in total) | Sec. 5.4, Table 6, Fig. 7c,d |
+| `md_scope.py` | molecular dynamics of run A for N = 1728, 4096 (to t = 3×10⁴), 13 824 (~1.5 h) | Sec. 5.4, Table 6, Fig. 7d |
+| `scope_report.py`, `scope_table.py` | numbers quoted in Sec. 5.4, homogeneity check of the MD runs (Sec. 6.3) and the body of Table 6 | Secs. 5.4, 6.3, Table 6 |
 | `figs.py` | Figs. 1, 3, 6 (files `fig1_F.pdf`, `fig3_lock.pdf`, `fig5_spin.pdf`) | |
 | `fig_phase.py`, `fig_driven.py`, `fig_cooling_rate.py`, `fig7.py`, `fig_md.py` | Figs. 2, 4, 5, 7, 8 | |
 
@@ -40,8 +52,13 @@ python3 run_cool.py        # Figs. 5, 6 data
 python3 diag_nongauss.py; python3 diag_bulk.py   # Table 2          (~10 min)
 python3 driven.py; python3 run_driven.py; python3 sliding_check.py   # Fig. 4, Table 4, scan (~15 min)
 python3 scan_extended.py                                            # extended scan, Sec. 5.1 (~10 min)
+python3 root_scan.py; python3 root_scan.py outside; python3 scan_fine.py   # uniqueness of the steady branch, Sec. 5.1 (~40 min)
+python3 run_driven2.py all                                          # heated gas, four initial conditions (~50 min)
 python3 run_freeze.py; python3 check_CEG.py  # Table 5, Fig. 7 data (~10 min)
 python3 md_event.py abc; python3 md_event.py sB   # molecular dynamics (~40 min)
+python3 run_scope.py all                                            # Sec. 5.4, DSMC incl. constant-friction controls (~3 h on one core)
+python3 md_scope.py small; python3 md_scope.py long; python3 md_scope.py large   # Sec. 5.4, molecular dynamics (~1.5 h)
+python3 scope_report.py; python3 scope_table.py                     # numbers of Secs. 5.4 and 6.3, Table 6
 python3 figs.py; python3 fig_phase.py; python3 fig_driven.py; python3 fig_cooling_rate.py; python3 fig7.py; python3 fig_md.py
 ```
 All random seeds are fixed.

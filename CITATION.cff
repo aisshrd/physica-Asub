@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 title: "Kinetic theory and DSMC code for rough granular gases with velocity-dependent Coulomb friction"
-version: "2.0.0"
-date-released: "2026-11-19"
+version: "2.1.0"
+date-released: "2026-11-25"
 license: MIT
 authors:
   - family-names: Tazhimov
